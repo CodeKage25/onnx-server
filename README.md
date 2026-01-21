@@ -14,6 +14,16 @@ A lightweight, high-performance inference server for deploying ONNX models via R
 - 📊 **Prometheus Metrics**: Built-in monitoring with latency percentiles
 - 🪶 **Edge Optimized**: ~15MB static binary for embedded devices
 
+## Hardware Requirements
+
+| Tier | CPU | RAM | Disk | GPU | Best For |
+|------|-----|-----|------|-----|----------|
+| **Minimum (Edge)** | 2 Cores (ARM64/x64) | 4GB | 1GB + Models | N/A | MobileNet, ResNet-18, Quantized Models |
+| **Recommended** | 4+ Cores | 16GB | 5GB + Models | NVIDIA T4 / A10G | ResNet-50, BERT, SDXL (fp16) |
+| **High Performance** | 8+ Cores | 32GB+ | NVMe SSD | NVIDIA A100 / H100 | LLMs (Llama, Mixtral), High Throughput |
+
+> **Note**: Memory requirements are highly dependent on model size and batch size. Example: A loaded SDXL model requires ~16GB VRAM for decent batch sizes.
+
 ## Quick Start
 
 ### Using Docker
