@@ -4,6 +4,7 @@
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -16,10 +17,23 @@ namespace onnx_server {
 
 /**
  * Histogram bucket for latency tracking
+ * Uses pointer to atomic to allow vector storage
  */
 struct HistogramBucket {
   double upper_bound;
-  std::atomic<uint64_t> count{0};
+  mutable std::unique_ptr<std::atomic<uint64_t>> count;
+
+  HistogramBucket(double bound)
+      : upper_bound(bound), count(std::make_unique<std::atomic<uint64_t>>(0)) {}
+  HistogramBucket(HistogramBucket &&other) noexcept
+      : upper_bound(other.upper_bound), count(std::move(other.count)) {}
+  HistogramBucket &operator=(HistogramBucket &&other) noexcept {
+    upper_bound = other.upper_bound;
+    count = std::move(other.count);
+    return *this;
+  }
+  HistogramBucket(const HistogramBucket &) = delete;
+  HistogramBucket &operator=(const HistogramBucket &) = delete;
 };
 
 /**
@@ -30,11 +44,12 @@ public:
   explicit Histogram(const std::vector<double> &buckets = {0.001, 0.005, 0.01,
                                                            0.025, 0.05, 0.1,
                                                            0.25, 0.5, 1.0}) {
+    buckets_.reserve(buckets.size() + 1);
     for (double bound : buckets) {
-      buckets_.push_back({bound, {}});
+      buckets_.emplace_back(bound);
     }
     // Add +Inf bucket
-    buckets_.push_back({std::numeric_limits<double>::infinity(), {}});
+    buckets_.emplace_back(std::numeric_limits<double>::infinity());
   }
 
   void observe(double value) {
@@ -44,7 +59,7 @@ public:
 
     for (auto &bucket : buckets_) {
       if (value <= bucket.upper_bound) {
-        bucket.count.fetch_add(1, std::memory_order_relaxed);
+        bucket.count->fetch_add(1, std::memory_order_relaxed);
       }
     }
   }
@@ -303,7 +318,7 @@ private:
       } else {
         ss << bucket.upper_bound;
       }
-      ss << "\"} " << bucket.count.load(std::memory_order_relaxed) << "\n";
+      ss << "\"} " << bucket.count->load(std::memory_order_relaxed) << "\n";
     }
     ss << name << "_sum " << hist.sum() << "\n";
     ss << name << "_count " << hist.count() << "\n";
