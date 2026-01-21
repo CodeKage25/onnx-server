@@ -32,7 +32,7 @@ docker run -p 8080:8080 -v /path/to/models:/models onnx-server:edge
 # Prerequisites: CMake 3.20+, C++17 compiler, ONNX Runtime
 
 # Clone and build
-git clone https://github.com/yourusername/onnx-server.git
+git clone https://github.com/CodeKage25/onnx-server.git
 cd onnx-server
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
