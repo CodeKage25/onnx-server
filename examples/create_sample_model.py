@@ -66,7 +66,8 @@ def create_simple_model():
     # Create model
     model = helper.make_model(
         graph,
-        opset_imports=[helper.make_opsetid('', 13)]
+        opset_imports=[helper.make_opsetid('', 13)],
+        ir_version=8  # IR 8 corresponds to Opset 13-17 context, should be compatible
     )
     
     # Validate
@@ -157,7 +158,8 @@ def create_classification_model():
     # Create model
     model = helper.make_model(
         graph,
-        opset_imports=[helper.make_opsetid('', 13)]
+        opset_imports=[helper.make_opsetid('', 13)],
+        ir_version=8
     )
     
     onnx.checker.check_model(model)
