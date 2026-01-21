@@ -92,11 +92,9 @@ if(NOT EXISTS ${THIRD_PARTY_DIR}/json.hpp)
     )
 endif()
 
-# yaml-cpp for configuration (lightweight)
-find_package(yaml-cpp QUIET)
-if(NOT yaml-cpp_FOUND)
-    message(STATUS "yaml-cpp not found, configuration will use JSON only")
-endif()
+# yaml-cpp disabled - using JSON for configuration
+# find_package(yaml-cpp QUIET)
+set(yaml-cpp_FOUND FALSE)
 
 # ============================================================================
 # Source Files
