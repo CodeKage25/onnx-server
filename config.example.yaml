@@ -1,0 +1,53 @@
+# Server configuration
+server:
+  host: "0.0.0.0"
+  port: 8080
+  threads: 4                    # Worker threads for request handling
+
+# Inference configuration
+inference:
+  providers:                    # Execution providers in priority order
+    - "tensorrt"                # TensorRT (fastest, NVIDIA only)
+    - "cuda"                    # CUDA (GPU acceleration)
+    - "cpu"                     # CPU fallback
+  gpu_device_id: 0              # GPU device ID (for multi-GPU systems)
+  memory_limit_mb: 4096         # GPU memory arena limit
+  intra_op_threads: 0           # Threads for ops parallelism (0 = auto)
+  inter_op_threads: 0           # Threads between ops (0 = auto)
+  graph_optimization: "all"     # Optimization level: none, basic, extended, all
+
+# Dynamic batching configuration
+batching:
+  enabled: true
+  max_batch_size: 32            # Maximum requests per batch
+  min_batch_size: 1             # Minimum before execution
+  max_wait_ms: 10               # Max wait time for batch accumulation
+  adaptive_sizing: true         # Dynamically adjust batch size
+
+# Model configuration
+models:
+  directory: "/models"          # Directory containing ONNX models
+  hot_reload: true              # Enable automatic model reloading
+  watch_interval_ms: 5000       # File watch polling interval
+  preload: []                   # Models to preload on startup (optional)
+
+# Prometheus metrics
+metrics:
+  enabled: true
+  path: "/metrics"
+  latency_buckets:              # Histogram buckets in seconds
+    - 0.001
+    - 0.005
+    - 0.01
+    - 0.025
+    - 0.05
+    - 0.1
+    - 0.25
+    - 0.5
+    - 1.0
+
+# Logging configuration
+logging:
+  level: "info"                 # debug, info, warn, error
+  format: "json"                # json or text
+  timestamp: true

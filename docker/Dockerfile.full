@@ -1,0 +1,63 @@
+# Build stage
+FROM nvidia/cuda:12.2.0-devel-ubuntu22.04 AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    cmake \
+    g++ \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ONNX Runtime with CUDA
+ARG ONNXRUNTIME_VERSION=1.16.3
+RUN wget -q https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-x64-gpu-${ONNXRUNTIME_VERSION}.tgz \
+    && tar -xzf onnxruntime-linux-x64-gpu-${ONNXRUNTIME_VERSION}.tgz \
+    && mv onnxruntime-linux-x64-gpu-${ONNXRUNTIME_VERSION} /opt/onnxruntime \
+    && rm onnxruntime-linux-x64-gpu-${ONNXRUNTIME_VERSION}.tgz
+
+# Copy source code
+WORKDIR /app
+COPY . .
+
+# Build
+RUN cmake -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DONNXRUNTIME_ROOT=/opt/onnxruntime \
+    -DENABLE_CUDA=ON \
+    -DENABLE_TENSORRT=OFF \
+    && cmake --build build --parallel $(nproc)
+
+# Runtime stage
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy ONNX Runtime libraries
+COPY --from=builder /opt/onnxruntime/lib /usr/local/lib
+
+# Copy built binary
+COPY --from=builder /app/build/onnx-server /usr/local/bin/onnx-server
+
+# Copy config example
+COPY --from=builder /app/config.example.yaml /etc/onnx-server/config.yaml
+
+# Create models directory
+RUN mkdir -p /models
+
+# Set library path
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+
+# Default command
+ENTRYPOINT ["/usr/local/bin/onnx-server"]
+CMD ["--config", "/etc/onnx-server/config.yaml", "--models", "/models"]

@@ -1,0 +1,36 @@
+# Build output
+build/
+build-*/
+cmake-build-*/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Compiled
+*.o
+*.a
+*.so
+*.dylib
+
+# Dependencies (auto-downloaded)
+third_party/httplib.h
+third_party/json.hpp
+
+# Models (user-provided)
+models/*.onnx
+
+# Config (user-specific)
+config.yaml
+config.json
+
+# macOS
+.DS_Store
+
+# Test outputs
+*.log
+test_results/
+coverage/
