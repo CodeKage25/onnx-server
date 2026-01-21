@@ -133,6 +133,22 @@ public:
    */
   void start_async() {
     server_thread_ = std::thread([this]() { start(); });
+
+    // Wait for server to initialize and start listening
+    int attempts = 0;
+    while (!running_ && attempts < 20) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      attempts++;
+    }
+
+    if (!running_) {
+      LOG_WARN(
+          "Server failed to start within timeout (or failed to bind port)");
+      // Ensure thread is joined if it finished immediately
+      if (server_thread_.joinable()) {
+        server_thread_.join();
+      }
+    }
   }
 
   /**

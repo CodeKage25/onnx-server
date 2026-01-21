@@ -26,7 +26,7 @@ batching:
 
 # Model configuration
 models:
-  directory: "/models"          # Directory containing ONNX models
+  directory: "./models"          # Directory containing ONNX models
   hot_reload: true              # Enable automatic model reloading
   watch_interval_ms: 5000       # File watch polling interval
   preload: []                   # Models to preload on startup (optional)

@@ -48,7 +48,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 
 # Run
-./build/onnx-server --config config.yaml
+./build/onnx-server --config config.json
 ```
 
 ### Cross-Compile for Edge
